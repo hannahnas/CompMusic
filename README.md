@@ -1,6 +1,6 @@
 # Computational Musicology Portfolio
 
-### Research question: What features are important for classifying a song to a specific genre?
+### Research question: What features are important for assigning a song to a specific genre?
 
 ### Method
 First, I will download spotify playlists for the genres jazz, rock and R&B and look at the features.
