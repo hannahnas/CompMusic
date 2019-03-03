@@ -2,10 +2,6 @@
 
 ### Research question: What features are important for assigning a song to a specific genre?
 
-### Method
-First, I will download spotify playlists for the genres jazz, rock and R&B and look at the features.
-Then I might try to train a classifier that returns feature importance.
-
 ### First look at the data
 Spotify playlists: Jazz Classics, Rock classics, RNB Classics
 
