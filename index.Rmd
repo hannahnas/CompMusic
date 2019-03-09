@@ -1,9 +1,11 @@
 ---
 title: "Computational Musicology"
+vauthor: "Hannah Min"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
-    vertical_layout: fill #scroll
+    vertical_layout: fill
+    storyboard: true
 ---
 
 ```{r setup, include=FALSE}
@@ -12,94 +14,51 @@ library(flexdashboard)
 
 ```{r}
 library(tidyverse)
+library(compmus)
 library(spotifyr)
 source('spotify.R')
 library(knitr)
 library(ggplot2)
 ```
 
-Introduction
-=====================================
-Column
------------------------------------------------------------------------
 
-### Research question
- 
-What features are important for assigning a song to a specific genre?
+### Introduction
 
-Column
------------------------------------------------------------------------
+Hip hop is said to be invented by Jamaican-born Kool DJ Herc in 1973 in New York’s Bronx (Blanchard, 1999). He used an new turntable technique to stretch a song's drum break (Blanchard, 1999). When a DJ was playing at a hip hop event, people started to comment on the abilities of the DJ, which resulted in rhymes spoken over the music (Blanchard, 1999).  This is what we now know as rap. Hip hop as both a musical genre and a culture reached different parts of the world. In the Netherlands this resulted in the genre Nederhop (Koreman, 2014). It was adapted to the Dutch market, especially by using the Dutch language and it can be seen as a way of expressing a national identity. 
+
+**How does Dutch hip hop compare to US hip hop in terms of their spotify features?**
+
+References:
+Blanchard, B. (1999). The social significance of rap & hip-hop culture. Journal of Poverty & Prejudice, Spring.
+
+Koreman, R. (2014). Legitimating Local Music: Volksmuziek, Hip-Hop/Rap and Dance Music in Dutch Elite Newspapers. Cultural Sociology, 8(4), 501-519.
 
 
-Data
-=====================================
-
-Column  {data-width = 1000}
------------------------------------------------------------------------
-### Overview
+### Corpus
 
 ```{r}
-jazz <- get_playlist_audio_features('', '37i9dQZF1DXbITWG1ZJKYt')
-rock <- get_playlist_audio_features('', '37i9dQZF1DWXRqgorJj26U')
-rnb <- get_playlist_audio_features('113193753', '1rLuENR0J3kQ2DNXJ0bp6x')
+hiphopNL_features <- get_playlist_audio_features("1110731694", "5Ady4U59sfaqcvwEoepX0L")
+
+hiphopUS_features <- get_playlist_audio_features("jonathangutsche", "37HfKsPNsDABlvJmik64oa")
+
+num_hiphopNL <- hiphopNL_features[, c("danceability", "energy", "loudness", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo")]
+
+num_hiphopUS <- hiphopUS_features[, c("danceability", "energy", "loudness", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo")]
 ```
 
+tabel corpus
 
-Spotify playlists:
+tabel gemiddelde en sd features
 
-* Jazz Classics (50 songs)
-* Rock classics (150 songs)
-* RNB Classics (70 songs)
+### Visualisation
 
-```{r echo = FALSE}
-#all_music <- rbind(jazz, rock, rnb)
-jazz_features <- jazz[, c("danceability", "energy", "key", "loudness", "mode", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo", "time_signature", "key_mode")]
+boxplot for spread showen
 
-rock_features <- rock[, c("danceability", "energy", "key", "loudness", "mode", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo", "time_signature", "key_mode")]
+scatterplots
 
-rnb_features <- rnb[, c("danceability", "energy", "key", "loudness", "mode", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo", "time_signature", "key_mode")]
-
-num_jazz <- jazz_features[, c("danceability", "energy", "loudness", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo")]
-
-num_rock <- rock_features[, c("danceability", "energy", "loudness", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo")]
-
-num_rnb <- rnb_features[, c("danceability", "energy", "loudness", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo")]
-
-jazz_means <- colMeans(num_jazz)
-
-rock_means <- colMeans(num_rock)
-
-rnb_means <- colMeans(num_rnb)
-
-means <- rbind(jazz_means, rock_means, rnb_means)
-
-kable(means, format='markdown')
-```
+### chromagrams and cepstrograms
 
 
-Visualizations
-=====================================
 
-Column {.tabset}
------------------------------------------------------------------------
+### Chroma-based and timbre-based self-similarity matrices
 
-### Dotplot
-![plot](Rplot.png)
-
-### Boxplot Jazz
-
-```{r echo = FALSE}
-ggplot(stack(num_jazz), aes(x = factor(ind, levels = names(num_jazz)), y = values)) + geom_boxplot()
-```
-
-### Boxplot Rock
-
-```{r echo = FALSE}
-ggplot(stack(num_rock), aes(x = factor(ind, levels = names(num_rock)), y = values)) + geom_boxplot()
-```
-
-### Boxplot Rnb
-
-```{r echo = FALSE}
-ggplot(stack(num_rnb), aes(x = factor(ind, levels = names(num_rnb)), y = values)) + geom_boxplot()
-```
