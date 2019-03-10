@@ -3,8 +3,6 @@ title: "Computational Musicology"
 vauthor: "Hannah Min"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: columns
-    vertical_layout: fill
     storyboard: true
 ---
 
@@ -12,53 +10,206 @@ output:
 library(flexdashboard)
 ```
 
-```{r}
+
+```{R}
 library(tidyverse)
 library(compmus)
 library(spotifyr)
 source('spotify.R')
 library(knitr)
 library(ggplot2)
+library(plotly)
+library(shiny)
+require(gridExtra)
 ```
 
 
 ### Introduction
 
-Hip hop is said to be invented by Jamaican-born Kool DJ Herc in 1973 in New York’s Bronx (Blanchard, 1999). He used an new turntable technique to stretch a song's drum break (Blanchard, 1999). When a DJ was playing at a hip hop event, people started to comment on the abilities of the DJ, which resulted in rhymes spoken over the music (Blanchard, 1999).  This is what we now know as rap. Hip hop as both a musical genre and a culture reached different parts of the world. In the Netherlands this resulted in the genre Nederhop (Koreman, 2014). It was adapted to the Dutch market, especially by using the Dutch language and it can be seen as a way of expressing a national identity. 
+**Introduction**
 
-**How does Dutch hip hop compare to US hip hop in terms of their spotify features?**
+Hip hop is said to be invented by the Jamaican Kool DJ Herc in 1973 in New York's Bronx (Blanchard, 1999). He used an new turntable technique to stretch a song's drum break (Blanchard, 1999). Rap, the lyrics of the music came up when DJ's were playing at a hip hop event and people started to comment on the abilities of the DJ (Blanchard, 1999). Hip hop as both a musical genre and a culture reached different parts of the world. In the Netherlands this resulted in the genre Nederhop (Koreman, 2014). It was adapted to the Dutch market, especially by using the Dutch language. Nederhop is highly influenced by american hip hop. Both dutch and american hip hop music are embedded in a different culture, which makes it interesting to research how they differ from each other. In this study the Spotify Developer toolkit is used to analyse both musical styles, based on a corpus. This resulted in the following research question: *How does Dutch hip hop compare to US hip hop in terms of their Spotify features?*
+
+
+
 
 References:
+
 Blanchard, B. (1999). The social significance of rap & hip-hop culture. Journal of Poverty & Prejudice, Spring.
 
 Koreman, R. (2014). Legitimating Local Music: Volksmuziek, Hip-Hop/Rap and Dance Music in Dutch Elite Newspapers. Cultural Sociology, 8(4), 501-519.
 
+***
+
+Image
 
 ### Corpus
 
+**Corpus**
 ```{r}
 hiphopNL_features <- get_playlist_audio_features("1110731694", "5Ady4U59sfaqcvwEoepX0L")
+hiphopNL_features$playlist_name <- "Hip hop NL"
 
 hiphopUS_features <- get_playlist_audio_features("jonathangutsche", "37HfKsPNsDABlvJmik64oa")
+
+all_music <- rbind(hiphopNL_features, hiphopUS_features)
 
 num_hiphopNL <- hiphopNL_features[, c("danceability", "energy", "loudness", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo")]
 
 num_hiphopUS <- hiphopUS_features[, c("danceability", "energy", "loudness", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo")]
+
 ```
 
-tabel corpus
+|                |URI's                                                       | Songs|
+|---------:      |---------:                                                  |---------:|
+|Dutch hip hop   |spotify:user:1110731694:playlist:5Ady4U59sfaqcvwEoepX0L     | 789|
+|American hip hop|spotify:user:jonathangutsche:playlist:37HfKsPNsDABlvJmik64oa| 449|
 
-tabel gemiddelde en sd features
+(still looking for anothe suitable US hip hop playlist to have an equal amount of data for both styles)
+
+
+**First look at the data**
+
+These are the means and standard deviations for the numeric features.
+
+```{r}
+mean_NL <- colMeans(num_hiphopNL)
+sd_NL <- sapply(num_hiphopNL, sd, na.rm = TRUE)
+
+mean_US <- colMeans(num_hiphopUS)
+sd_US <- sapply(num_hiphopUS, sd, na.rm = TRUE)
+
+table <- data.frame(mean_NL, sd_NL, mean_US, sd_US)
+knitr::kable(table)
+
+```
+
+The values for American and Dutch hip hop are very much alike. It can be noticed that the standard deviations for the Dutch hip hop are smaller.
 
 ### Visualisation
 
-boxplot for spread showen
+```{r}
+e_v <- ggplot(all_music, aes(x=valence, y=energy, color=playlist_name)) + geom_point()
+ggplotly(e_v)
+```
 
-scatterplots
+***
+comment
 
-### chromagrams and cepstrograms
+### Cepstrograms
+
+```{r}
+# Drake take care
+take_care <- 
+    get_tidy_audio_analysis('124NFj84ppZ5pAxTuVQYCQ') %>% 
+    compmus_align(bars, segments) %>% 
+    select(bars) %>% unnest(bars) %>% 
+    mutate(
+        pitches = 
+            map(segments, 
+                compmus_summarise, pitches, 
+                method = 'rms', norm = 'euclidean')) %>% 
+    mutate(
+        timbre = 
+            map(segments, 
+                compmus_summarise, timbre, 
+                method = 'mean'))
+cep1 <- take_care %>% 
+    compmus_gather_timbre %>% 
+    ggplot(
+        aes(
+            x = start + duration / 2, 
+            width = duration, 
+            y = basis, 
+            fill = value)) + 
+    geom_tile() +
+    labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
+    scale_fill_viridis_c(option = 'E') +
+    theme_classic()
 
 
+# Slapend rijk
+slapend_rijk <-
+    get_tidy_audio_analysis('3PiDnD8RhPrlmzMpAgF9xK') %>%
+    compmus_align(bars, segments) %>%
+    select(bars) %>% unnest(bars) %>%
+    mutate(
+        pitches =
+            map(segments,
+                compmus_summarise, pitches,
+                method = 'rms', norm = 'euclidean')) %>%
+    mutate(
+        timbre =
+            map(segments,
+                compmus_summarise, timbre,
+                method = 'mean'))
 
-### Chroma-based and timbre-based self-similarity matrices
+cep2 <- slapend_rijk %>%
+    compmus_gather_timbre %>%
+    ggplot(
+        aes(
+            x = start + duration / 2,
+            width = duration,
+            y = basis,
+            fill = value)) +
+    geom_tile() +
+    labs(x = 'Time (s)', y = NULL, fill = 'Magnitude') +
+    scale_fill_viridis_c(option = 'E') +
+    theme_classic()
+```
+
+```{R}
+grid.arrange(cep1, cep2, ncol=2, heights=c(1,1), top = "Cepstogram Take care vs. Slapend rijk")
+
+```
+
+
+***
+On the left:
+Song: Take care
+Artist(s): Drake, Rihanna
+
+On the right:
+Song: Slapend Rijk
+Artist(s): Boef, Sevn Alias
+
+### Self-similarity matrices
+```{r}
+sim1 <- take_care %>%
+    compmus_self_similarity(timbre, 'cosine') %>%
+    ggplot(
+        aes(
+            x = xstart + xduration / 2,
+            width = xduration,
+            y = ystart + yduration / 2,
+            height = yduration,
+            fill = d)) +
+    geom_tile() +
+    coord_fixed() +
+    scale_fill_viridis_c(option = 'E', guide = 'none') +
+    theme_classic() +
+    labs(x = '', y = '')
+
+sim2 <- slapend_rijk %>%
+    compmus_self_similarity(timbre, 'cosine') %>%
+    ggplot(
+        aes(
+            x = xstart + xduration / 2,
+            width = xduration,
+            y = ystart + yduration / 2,
+            height = yduration,
+            fill = d)) +
+    geom_tile() +
+    coord_fixed() +
+    scale_fill_viridis_c(option = 'E', guide = 'none') +
+    theme_classic() +
+    labs(x = '', y = '')
+
+grid.arrange(sim1, sim2, ncol=2, top = "Self-similarity matrixes Take care vs. Slapend rijk")
+
+```
+
+***
+comment
+
 
