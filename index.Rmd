@@ -89,7 +89,7 @@ The values for American and Dutch hip hop are very much alike. It can be noticed
 ### Visualisation
 
 ```{r}
-e_v <- ggplot(all_music, aes(x=valence, y=energy, color=playlist_name)) + geom_point()
+e_v <- ggplot(all_music, aes(x=valence, y=energy, color=playlist_name, label = artist_name, label2 = track_name)) + geom_point(shape = 21)
 ggplotly(e_v)
 ```
 
@@ -166,10 +166,12 @@ grid.arrange(cep1, cep2, ncol=2, heights=c(1,1), top = "Cepstogram Take care vs.
 
 ***
 On the left:
+
 Song: Take care
 Artist(s): Drake, Rihanna
 
 On the right:
+
 Song: Slapend Rijk
 Artist(s): Boef, Sevn Alias
 
@@ -210,6 +212,14 @@ grid.arrange(sim1, sim2, ncol=2, top = "Self-similarity matrixes Take care vs. S
 ```
 
 ***
-comment
+On the left:
+
+Song: Take care
+Artist(s): Drake, Rihanna
+
+On the right:
+
+Song: Slapend Rijk
+Artist(s): Boef, Sevn Alias
 
 
