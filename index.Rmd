@@ -21,10 +21,14 @@ library(ggplot2)
 library(plotly)
 library(shiny)
 require(gridExtra)
+library(tidymodels)
+library(ggdendro)
+library(protoclust)
+library(heatmaply)
 set.seed(5)
 ```
 
-Introduction {data-navmenu=Setup data-orientation=rows}
+Intro {data-orientation=rows}
 ===================================== 
     
 ### Nederhop versus American Hip Hop Music
@@ -47,7 +51,7 @@ Koreman, R. (2014). Legitimating Local Music: Volksmuziek, Hip-Hop/Rap and Dance
 ![](music artist.jpg)
 
    
-Corpus {data-navmenu=Setup data-orientation=rows}
+Corpus {data-orientation=rows}
 =====================================     
 
 Column {data-height=200}
@@ -85,7 +89,7 @@ Column {data-height=800}
 |Nicki Minaj	  |This Is Nicki Minaj	  |spotify:user:spotify:playlist:37i9dQZF1DXcdgOcuyZbSA|
 
 
-Statistics {data-navmenu=Setup}
+Statistics
 =====================================
 
 ```{r}
@@ -448,4 +452,68 @@ humble %>%
 Column {data-width=300}
 -------------------------------------
 ### Findings
-.
+
+
+Clustering
+=====================================
+Column {data-width=800}
+-------------------------------------
+### Hierarchical Clustering
+```{R}
+ml_corpus <- rbind(sample_n(nederhop, 30), sample_n(american_hiphop, 30))
+ml_data <- ml_corpus %>% add_audio_analysis %>% 
+    mutate(
+        segments = 
+            map2(segments, key, compmus_c_transpose)) %>% 
+    mutate(
+        pitches = 
+            map(segments, 
+                compmus_summarise, pitches, 
+                method = 'mean', norm = 'manhattan'),
+        timbre =
+            map(
+                segments,
+                compmus_summarise, timbre,
+                method = 'mean')) %>% 
+    mutate(pitches = map(pitches, compmus_normalise, 'clr')) %>% 
+    mutate_at(vars(pitches, timbre), map, bind_rows) %>% 
+    unnest(pitches, timbre)
+```
+
+
+```{r}
+corpus_juice <- 
+    recipe(track_name ~
+               danceability +
+               energy +
+               loudness +
+               speechiness +
+               acousticness +
+               instrumentalness +
+               liveness +
+               valence +
+               tempo +
+               duration_ms +
+               C + `C#|Db` + D + `D#|Eb` +
+               E + `F` + `F#|Gb` + G +
+               `G#|Ab` + A + `A#|Bb` + B +
+               c01 + c02 + c03 + c04 + c05 + c06 +
+               c07 + c08 + c09 + c10 + c11 + c12,
+           data = ml_data) %>% 
+    step_center(all_predictors()) %>%
+    step_scale(all_predictors()) %>%
+    # step_range(all_predictors()) %>% 
+    prep(ml_data %>% mutate(track_name = str_trunc(track_name, 20))) %>% 
+    juice %>% 
+    column_to_rownames('track_name')
+```
+
+```{r}
+data_dist <- dist(corpus_juice, method = 'euclidean')
+protoclust(data_dist) %>% dendro_data %>% ggdendrogram
+```
+
+Column {data-width=200}
+-------------------------------------
+### Notes
+I randomly selected 30 dutch songs and 30 american songs to perform machine learing on. To the left, we see an hierarchical clustering for the data. On the left we see mostly american songs and on the right we see mostly dutch songs. In the middle it is mixed.
