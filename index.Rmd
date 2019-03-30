@@ -45,6 +45,7 @@ References:
 Blanchard, B. (1999). The social significance of rap & hip-hop culture. Journal of Poverty & Prejudice, Spring.
 
 Koreman, R. (2014). Legitimating Local Music: Volksmuziek, Hip-Hop/Rap and Dance Music in Dutch Elite Newspapers. Cultural Sociology, 8(4), 501-519.
+
     
 ### .
 
@@ -186,7 +187,7 @@ Column {data-width=300}
 These are the means and standard deviations for the numeric features. The featue values for American and Dutch hip hop are alike. It can be noticed that the standard deviations for the Dutch hip hop are smaller. This was surprising, because in the literature, Nederhop seemed to be a broader genre.
 
 
-Emotion
+Emotions
 =====================================
 
 Column {.tabset .tabset-fade data-width=600}
@@ -265,12 +266,12 @@ Column {data-width=400}
 To define the danceability of a song, Spotify considers tempo, rhythm stability, beat strength, and overall regularity. As hip hop is a huge dance culture, it is expected that the songs are often very danceable. This is visible in the data. I didn't think acoustic hip hop was very plausible, so I expected to find some outliers. I don't think we should consider "Grand Piano" by Nicki Minaj hip hop, but I do think "Lust For Life" by Drake is a great example that acoustic hip hop is possible.
 
 
-Self-Similarity Matrices
+Song structure
 =====================================
 
-Column {data-width=700}
+Column {.tabset .tabset-fade data-width=700}
 -------------------------------------
-### "Gemaakt voor dit" by Lil' Kleine & "Signs" by Snoop Dogg
+### "Gemaakt voor dit" by Lil' Kleine
 ```{r}
 gemaakt_voor_dit <- 
     get_tidy_audio_analysis('1wOLYsMBvJ2NOYSudRMTSo') %>% 
@@ -317,9 +318,10 @@ gemaakt_voor_dit_chroma <- gemaakt_voor_dit %>%
     theme_classic() +
     labs(x = '', y = '')
 
-#grid.arrange(gemaakt_voor_dit_timbre, gemaakt_voor_dit_chroma, ncol=2, heights=c(1,1), top = "Timbre-based vs Chroma-based Self-Similarity matrix")
+grid.arrange(gemaakt_voor_dit_timbre, gemaakt_voor_dit_chroma, ncol=2, heights=c(1,1), top = "Timbre-based vs Chroma-based Self-Similarity matrix")
 ```
 
+### "Signs" by Snoop Dogg
 ```{r}
 signs <- 
     get_tidy_audio_analysis('2Sionb7ZAmdVGH9mieuJ7Z') %>% 
@@ -366,7 +368,7 @@ signs_chroma <- signs %>%
     theme_classic() +
     labs(x = '', y = '')
 
-grid.arrange(gemaakt_voor_dit_timbre, gemaakt_voor_dit_chroma, signs_timbre, signs_chroma, ncol=2, heights=c(2,2), top = "Timbre-based vs Chroma-based Self-Similarity matrices")
+grid.arrange(signs_timbre, signs_chroma, ncol=2, heights=c(1,1), top = "Timbre-based vs Chroma-based Self-Similarity matrices")
 ```
 
 Column {data-width=300}
@@ -374,7 +376,9 @@ Column {data-width=300}
 ### Findings
 In the previous page we looked at the danceability of songs. Although danceability is not a very straight forward feature, I want to look for other things that might indicate the dancebility of songs. I selected "Gemaakt voor dit" by Lil' Kleine and "Signs" by Snoop Dogg, because they are extremely danceable according to Spotify. After listening to the songs, I must say I agree. 
 
-The first row shows the self-similarity matrices for "Gemaakt voor dit", where the first one is based on timbre, and the second one is based on chroma. The features were summarised at bar level and the axes are in seconds. The second row shows the same analysis for the song "Signs" by Snoop Dogg. In the matrices, we see a checkerboard structure, indicating a lot of repetitions. To make it easy to dance to a song, I think the song should be predictable and that can be accomplished by repetition. The chroma and timbre patterns for "Gemaakt voor dit" seem to fit nicely on top of each other, showing that changes in chroma go together with changes in timbre.
+For each song, the left self-similarity matrix is based on timbre, and the right one is based on chroma. The features were summarised at bar level and the axes are in seconds. 
+
+In the matrices, we see a checkerboard structure. These blocks represent homogeneous regions in the songs. The diagonal lines, parallel to the main diagnal represent exact repetions in the music. Both songs show a lot of repitions, which makes sense. To make it easy to dance to a song, I think the song should be predictable and that can be accomplished by repetition. The chroma and timbre patterns for "Gemaakt voor dit" seem to fit nicely on top of each other, showing that homogeneous regions in chroma correspond to homogenious regions in timbre.
 
 Keygram
 =====================================
@@ -456,12 +460,12 @@ Column {data-width=300}
 
 Clustering
 =====================================
-Column {data-width=800}
+Column {.tabset .tabset-fade data-width=800}
 -------------------------------------
 ### Hierarchical Clustering
 ```{R}
-ml_corpus <- rbind(sample_n(nederhop, 30), sample_n(american_hiphop, 30))
-ml_data <- ml_corpus %>% add_audio_analysis %>% 
+cluster_corpus <- rbind(sample_n(nederhop, 30), sample_n(american_hiphop, 30))
+cluster_data <- cluster_corpus %>% add_audio_analysis %>% 
     mutate(
         segments = 
             map2(segments, key, compmus_c_transpose)) %>% 
@@ -499,11 +503,11 @@ corpus_juice <-
                `G#|Ab` + A + `A#|Bb` + B +
                c01 + c02 + c03 + c04 + c05 + c06 +
                c07 + c08 + c09 + c10 + c11 + c12,
-           data = ml_data) %>% 
+           data = cluster_data) %>% 
     step_center(all_predictors()) %>%
     step_scale(all_predictors()) %>%
     # step_range(all_predictors()) %>% 
-    prep(ml_data %>% mutate(track_name = str_trunc(track_name, 20))) %>% 
+    prep(cluster_data %>% mutate(track_name = str_trunc(track_name, 20))) %>% 
     juice %>% 
     column_to_rownames('track_name')
 ```
@@ -513,7 +517,105 @@ data_dist <- dist(corpus_juice, method = 'euclidean')
 protoclust(data_dist) %>% dendro_data %>% ggdendrogram
 ```
 
+### Heat map
+```{r}
+heatmaply(
+    corpus_juice,
+    #hclustfun = hclust,
+    hclustfun = protoclust,
+    # Comment out the hclust_method line when using protoclust.
+    protoclust_method = 'average',
+    dist_method = 'euclidean')
+```
+
 Column {data-width=200}
 -------------------------------------
 ### Notes
-I randomly selected 30 dutch songs and 30 american songs to perform machine learing on. To the left, we see an hierarchical clustering for the data. On the left we see mostly american songs and on the right we see mostly dutch songs. In the middle it is mixed.
+I randomly selected 30 dutch songs and 30 american songs to perform machine learing on. To the left, we see an hierarchical clustering for the data. In the clusters on the left we see mostly american songs and in the cluster on the right we see mostly dutch songs. In the middle it is mixed.
+
+The heatmap shows the intensity in which the features contributed to the clustering. As the clusters are all in the blue region, it is hard to point out features that are most responsible. Instrumentalness was apparantly very important for the song 'Heard Em Say', assiging it to a cluster of its own.
+
+Classification
+=====================================
+
+Column {.tabset .tabset-fade data-width=800}
+-------------------------------------
+
+### Random Forest Classifier
+```{r}
+hiphop <- 
+    rbind(sample_n(nederhop, 75), sample_n(american_hiphop, 75)) %>% add_audio_analysis %>% 
+    mutate(genre = factor(genre)) %>% 
+    mutate(
+        segments = 
+            map2(segments, key, compmus_c_transpose)) %>% 
+    mutate(
+        pitches = 
+            map(segments, 
+                compmus_summarise, pitches, 
+                method = 'mean', norm = 'manhattan'),
+        timbre =
+            map(
+                segments,
+                compmus_summarise, timbre,
+                method = 'mean')) %>% 
+    mutate(pitches = map(pitches, compmus_normalise, 'clr')) %>% 
+    mutate_at(vars(pitches, timbre), map, bind_rows) %>% 
+    unnest(pitches, timbre)
+
+hiphop_class <- 
+    recipe(genre ~
+               danceability +
+               energy +
+               loudness +
+               speechiness +
+               acousticness +
+               instrumentalness +
+               liveness +
+               valence +
+               tempo +
+               duration_ms +
+               C + `C#|Db` + D + `D#|Eb` +
+               E + `F` + `F#|Gb` + G +
+               `G#|Ab` + A + `A#|Bb` + B +
+               c01 + c02 + c03 + c04 + c05 + c06 +
+               c07 + c08 + c09 + c10 + c11 + c12,
+           data = hiphop) %>% 
+    step_center(all_predictors()) %>%
+    step_scale(all_predictors()) %>%
+    # step_range(all_predictors()) %>% 
+    prep(hiphop) %>% 
+    juice
+
+hiphop_cv <- hiphop_class %>% vfold_cv(5)
+```
+
+```{r}
+hiphop_forest <- rand_forest() %>% set_engine('randomForest')
+predict_forest <- function(split)
+    fit(hiphop_forest, genre ~ ., data = analysis(split)) %>% 
+    predict(assessment(split), type = 'class') %>%
+    bind_cols(assessment(split))
+
+hiphop_cv %>% 
+    mutate(pred = map(splits, predict_forest)) %>% unnest(pred) %>% 
+    conf_mat(truth = genre, estimate = .pred_class) %>% 
+    autoplot(type = 'heatmap')
+```
+
+### Feature importance
+
+```{r}
+hiphop_class %>% 
+    fit(hiphop_forest, genre ~ ., data = .) %>% 
+    pluck('fit') %>% 
+    randomForest::varImpPlot()
+```
+
+Column {data-width=200}
+-------------------------------------
+### Notes
+
+
+Conclusions
+=====================================
