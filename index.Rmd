@@ -25,7 +25,52 @@ library(tidymodels)
 library(ggdendro)
 library(protoclust)
 library(heatmaply)
+library(dplyr)
 set.seed(5)
+```
+```{R}
+circshift <- function(v, n) {if (n == 0) v else c(tail(v, n), head(v, -n))}
+                                    
+    # C     C#    D     Eb    E     F     F#    G     Ab    A     Bb    B 
+major_chord <- 
+    c(1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    0,    0)
+minor_chord <- 
+    c(1,    0,    0,    1,    0,    0,    0,    1,    0,    0,    0,    0)
+seventh_chord <- 
+    c(1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    1,    0)
+
+major_key <- 
+    c(6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
+minor_key <-
+    c(6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
+
+key_templates <-
+    tribble(
+        ~name    , ~template,
+        'Gb:maj', circshift(major_key,  6),
+        'Bb:min', circshift(minor_key, 10),
+        'Db:maj', circshift(major_key,  1),
+        'F:min' , circshift(minor_key,  5),
+        'Ab:maj', circshift(major_key,  8),
+        'C:min' , circshift(minor_key,  0),
+        'Eb:maj', circshift(major_key,  3),
+        'G:min' , circshift(minor_key,  7),
+        'Bb:maj', circshift(major_key, 10),
+        'D:min' , circshift(minor_key,  2),
+        'F:maj' , circshift(major_key,  5),
+        'A:min' , circshift(minor_key,  9),
+        'C:maj' , circshift(major_key,  0),
+        'E:min' , circshift(minor_key,  4),
+        'G:maj' , circshift(major_key,  7),
+        'B:min' , circshift(minor_key, 11),
+        'D:maj' , circshift(major_key,  2),
+        'F#:min', circshift(minor_key,  6),
+        'A:maj' , circshift(major_key,  9),
+        'C#:min', circshift(minor_key,  1),
+        'E:maj' , circshift(major_key,  4),
+        'G#:min', circshift(minor_key,  8),
+        'B:maj' , circshift(major_key, 11),
+        'D#:min', circshift(minor_key,  3))
 ```
 
 Intro {data-orientation=rows}
@@ -38,13 +83,6 @@ Hip hop is said to be invented by the Jamaican Kool DJ Herc in 1973 in New York'
 **How does Nederhop compare to American hip hop in terms of their Spotify features?**
 
 Koreman (2014) found that authenticity is one of the main criteria by which hip hop music is judged in the media. Though, the meaning of authenticity is not always the same. In music reviews in the US, authenticity is all about 'keeping it real' and remaining true to your roots. In the Netherlands on the other hand, authentic means being true to yourself. Where American rappers are expected to stay within the genre, in Nederhop experimentation is valued, allowing artists to mix hip hop with pop and reggae for example. This flexibility within Nederhop as a genre, might be visible in the Spotify features that are going to be analysed. It could result in a bigger spread of the data.
-
-
-References:
-
-Blanchard, B. (1999). The social significance of rap & hip-hop culture. Journal of Poverty & Prejudice, Spring.
-
-Koreman, R. (2014). Legitimating Local Music: Volksmuziek, Hip-Hop/Rap and Dance Music in Dutch Elite Newspapers. Cultural Sociology, 8(4), 501-519.
 
     
 ### .
@@ -60,17 +98,17 @@ Column {data-height=200}
 
 ### Corpus Selection
     
-For this research project, I selected 7 Dutch and 7 American hip hop artists. Besides comparing the two genres, this enables us to look at the characteristics of each individual artist.  For each artist Spotify has created a 'This is ...' playlist with around 50 songs. I noticed a lot of collaboration between artists. This might result in songs appearing in multiple playlists, which might have a misleading effect. To be able to do a good comparison, I decided to select only the songs by the artist himself. I hope this gives a good representation of the style and properties of the artists. After making this selection,  the playlists differed a lot in size, but I accepted this because the number of songs for the dutch and american genre were almost the same.  This analysis is focussed on relatively new hip hop, with songs uploaded from 2017 till now.
+For this research project, I selected 7 Dutch and 7 American hip hop artists. Besides comparing the two genres, this enables us to look at the characteristics of each individual artist.  For each artist Spotify has created a 'This is ...' playlist with around 50 songs. I noticed a lot of collaboration between artists. This might result in songs appearing in multiple playlists, which might have a misleading effect. To be able to do a good comparison, I decided to select only the songs by the artist himself. I hope this gives a good representation of the style and properties of the artists. After making this selection,  the playlists differed a lot in size, but I accepted this because the number of songs for the dutch and American genre were almost the same.  This analysis is focussed on relatively new hip hop, with songs uploaded from 2017 till now.
 
 Column {data-height=800}
 -------------------------------------
 
 ### Spotify Playlists: Nederhop
 
-|Artist         |Spotify Playlist       |Spotify URI’s|
+|Artist         |Spotify Playlist       |Spotify URI's|
 |---------:     |---------:             |---------:|
 |Boef	          |This Is Boef	          |spotify:user:spotify:playlist:37i9dQZF1DWWJCm1k4bHxN|
-|Lil’ Kleine	  |This Is Lil’ Kleine	  |spotify:user:spotify:playlist:37i9dQZF1DX7ZXeE7FXyuv|
+|Lil' Kleine	  |This Is Lil' Kleine	  |spotify:user:spotify:playlist:37i9dQZF1DX7ZXeE7FXyuv|
 |Ronnie Flex	  |This Is Ronnie Flex	  |spotify:user:spotify:playlist:37i9dQZF1DWUnYvKDFOuQS|
 |Bizzey	        |This Is Bizzey	        |spotify:user:spotify:playlist:37i9dQZF1DZ06evO3lKLEk|
 |Frenna	        |This Is Frenna	        |spotify:user:spotify:playlist:37i9dQZF1DZ06evO3KC2M8|
@@ -222,8 +260,6 @@ Column {data-width=400}
 ![](model_of_affect.png){width=400}
 
 
-Emotion studies in HCI-a new approach - Scientific Figure on ResearchGate. Available from: https://www.researchgate.net/figure/Russells-circumplex-model-of-affect_fig1_229021134 [accessed 19 Mar, 2019]
-
 ### Findings
 
 On the left we see the data points in an enery valence space. This space can be linked to different emotions. Above, Russell's circumplex model is displayed. In this model, the vertical axis represents arousal, which for now we consider comparable with energy. The horizontal axis represents valence. The middle represents medium valence and medium arousal.
@@ -318,7 +354,26 @@ gemaakt_voor_dit_chroma <- gemaakt_voor_dit %>%
     theme_classic() +
     labs(x = '', y = '')
 
-grid.arrange(gemaakt_voor_dit_timbre, gemaakt_voor_dit_chroma, ncol=2, heights=c(1,1), top = "Timbre-based vs Chroma-based Self-Similarity matrix")
+gemaakt_key <- 
+    get_tidy_audio_analysis('1wOLYsMBvJ2NOYSudRMTSo') %>% 
+    compmus_align(sections, segments) %>% 
+    select(sections) %>% unnest(sections) %>% 
+    mutate(
+        pitches = 
+            map(segments, 
+                compmus_summarise, pitches, 
+                method = 'mean', norm = 'manhattan'))
+
+gemaakt_keygram <- gemaakt_key %>% 
+    compmus_match_pitch_template(key_templates, 'euclidean', 'manhattan') %>% 
+    ggplot(
+        aes(x = start + duration / 2, width = duration, y = name, fill = d)) +
+    geom_tile() +
+    scale_fill_viridis_c(option = 'E', guide = 'none') +
+    theme_minimal() +
+    labs(x = 'Time (s)', y = '')
+
+grid.arrange(gemaakt_voor_dit_timbre, gemaakt_voor_dit_chroma, gemaakt_keygram, ncol=2, heights=c(2,2), top = "Timbre-based vs Chroma-based Self-Similarity matrices")
 ```
 
 ### "Signs" by Snoop Dogg
@@ -368,7 +423,26 @@ signs_chroma <- signs %>%
     theme_classic() +
     labs(x = '', y = '')
 
-grid.arrange(signs_timbre, signs_chroma, ncol=2, heights=c(1,1), top = "Timbre-based vs Chroma-based Self-Similarity matrices")
+signs_key <- 
+    get_tidy_audio_analysis('2Sionb7ZAmdVGH9mieuJ7Z') %>% 
+    compmus_align(sections, segments) %>% 
+    select(sections) %>% unnest(sections) %>% 
+    mutate(
+        pitches = 
+            map(segments, 
+                compmus_summarise, pitches, 
+                method = 'mean', norm = 'manhattan'))
+
+signs_keygram <- signs_key %>% 
+    compmus_match_pitch_template(key_templates, 'euclidean', 'manhattan') %>% 
+    ggplot(
+        aes(x = start + duration / 2, width = duration, y = name, fill = d)) +
+    geom_tile() +
+    scale_fill_viridis_c(option = 'E', guide = 'none') +
+    theme_minimal() +
+    labs(x = 'Time (s)', y = '')
+
+grid.arrange(signs_timbre, signs_chroma, signs_keygram, ncol=2, heights=c(2,2), top = "Timbre-based vs Chroma-based Self-Similarity matrices")
 ```
 
 Column {data-width=300}
@@ -380,83 +454,7 @@ For each song, the left self-similarity matrix is based on timbre, and the right
 
 In the matrices, we see a checkerboard structure. These blocks represent homogeneous regions in the songs. The diagonal lines, parallel to the main diagnal represent exact repetions in the music. Both songs show a lot of repitions, which makes sense. To make it easy to dance to a song, I think the song should be predictable and that can be accomplished by repetition. The chroma and timbre patterns for "Gemaakt voor dit" seem to fit nicely on top of each other, showing that homogeneous regions in chroma correspond to homogenious regions in timbre.
 
-Keygram
-=====================================
-Column {data-width=700}
--------------------------------------
-### HUMBLE. by Kendrick Lamar
-
-```{R}
-circshift <- function(v, n) {if (n == 0) v else c(tail(v, n), head(v, -n))}
-                                    
-    # C     C#    D     Eb    E     F     F#    G     Ab    A     Bb    B 
-major_chord <- 
-    c(1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    0,    0)
-minor_chord <- 
-    c(1,    0,    0,    1,    0,    0,    0,    1,    0,    0,    0,    0)
-seventh_chord <- 
-    c(1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    1,    0)
-
-major_key <- 
-    c(6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
-minor_key <-
-    c(6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
-
-key_templates <-
-    tribble(
-        ~name    , ~template,
-        'Gb:maj', circshift(major_key,  6),
-        'Bb:min', circshift(minor_key, 10),
-        'Db:maj', circshift(major_key,  1),
-        'F:min' , circshift(minor_key,  5),
-        'Ab:maj', circshift(major_key,  8),
-        'C:min' , circshift(minor_key,  0),
-        'Eb:maj', circshift(major_key,  3),
-        'G:min' , circshift(minor_key,  7),
-        'Bb:maj', circshift(major_key, 10),
-        'D:min' , circshift(minor_key,  2),
-        'F:maj' , circshift(major_key,  5),
-        'A:min' , circshift(minor_key,  9),
-        'C:maj' , circshift(major_key,  0),
-        'E:min' , circshift(minor_key,  4),
-        'G:maj' , circshift(major_key,  7),
-        'B:min' , circshift(minor_key, 11),
-        'D:maj' , circshift(major_key,  2),
-        'F#:min', circshift(minor_key,  6),
-        'A:maj' , circshift(major_key,  9),
-        'C#:min', circshift(minor_key,  1),
-        'E:maj' , circshift(major_key,  4),
-        'G#:min', circshift(minor_key,  8),
-        'B:maj' , circshift(major_key, 11),
-        'D#:min', circshift(minor_key,  3))
-```
-
-```{R}
-humble <- 
-    get_tidy_audio_analysis('7KXjTSCq5nL1LoYtL7XAwS') %>% 
-    compmus_align(sections, segments) %>% 
-    select(sections) %>% unnest(sections) %>% 
-    mutate(
-        pitches = 
-            map(segments, 
-                compmus_summarise, pitches, 
-                method = 'mean', norm = 'manhattan'))
-
-humble %>% 
-    compmus_match_pitch_template(key_templates, 'euclidean', 'manhattan') %>% 
-    ggplot(
-        aes(x = start + duration / 2, width = duration, y = name, fill = d)) +
-    geom_tile() +
-    scale_fill_viridis_c(option = 'E', guide = 'none') +
-    theme_minimal() +
-    labs(x = 'Time (s)', y = '')
-```
-
-
-Column {data-width=300}
--------------------------------------
-### Findings
-
+The keygram for "Signs" does not seem very plausible, because it shows high intensity for almost all keys at the same time.
 
 Clustering
 =====================================
@@ -530,8 +528,8 @@ heatmaply(
 
 Column {data-width=200}
 -------------------------------------
-### Notes
-I randomly selected 30 dutch songs and 30 american songs to perform machine learing on. To the left, we see an hierarchical clustering for the data. In the clusters on the left we see mostly american songs and in the cluster on the right we see mostly dutch songs. In the middle it is mixed.
+### Findings
+I randomly selected 30 Dutch songs and 30 American songs to perform unsupervised learing on. On the left, we see an hierarchical clustering for the data.
 
 The heatmap shows the intensity in which the features contributed to the clustering. As the clusters are all in the blue region, it is hard to point out features that are most responsible. Instrumentalness was apparantly very important for the song 'Heard Em Say', assiging it to a cluster of its own.
 
@@ -541,7 +539,7 @@ Classification
 Column {.tabset .tabset-fade data-width=800}
 -------------------------------------
 
-### Random Forest Classifier
+### Genre Classification
 ```{r}
 hiphop <- 
     rbind(sample_n(nederhop, 75), sample_n(american_hiphop, 75)) %>% add_audio_analysis %>% 
@@ -597,25 +595,143 @@ predict_forest <- function(split)
     predict(assessment(split), type = 'class') %>%
     bind_cols(assessment(split))
 
-hiphop_cv %>% 
+performance <- hiphop_cv %>% 
     mutate(pred = map(splits, predict_forest)) %>% unnest(pred) %>% 
-    conf_mat(truth = genre, estimate = .pred_class) %>% 
+    conf_mat(truth = genre, estimate = .pred_class)
+
+performance %>% 
     autoplot(type = 'heatmap')
+
+TP <- performance[[1]][1]
+FN <- performance[[1]][2]
+FP <- performance[[1]][3]
+TN <- performance[[1]][4]
+
+# calculate accuracy, precision, recall
+accuracy <- (TP + TN) / (TP + FN + FP + TN)
+precision <- TP / (TP + FP)
+recall <- TP / (TP + FN)
+
 ```
 
 ### Feature importance
 
 ```{r}
-hiphop_class %>% 
+importance <- hiphop_class %>% 
     fit(hiphop_forest, genre ~ ., data = .) %>% 
     pluck('fit') %>% 
     randomForest::varImpPlot()
 ```
 
+### Two most important features
+
+```{r}
+# plot duration_ms, c05
+importance <- ggplot(hiphop, aes(x=c09, y=duration_ms, color=genre, label = artist_name, label2 = track_name)) + geom_point()
+ggplotly(importance)
+
+```
+
+### Artist classification
+```{r}
+artist_data <- bind_rows(list(sample_n(boef, 15), sample_n(lilkleine, 15), sample_n(ronnie, 15), sample_n(bizzey, 15), sample_n(frenna, 15), sample_n(broederliefde, 15), sample_n(josylvio, 15), sample_n(wiz, 15), sample_n(kanye, 15), sample_n(kendrick, 15), sample_n(drake, 15), sample_n(khaled, 15), sample_n(snoop, 15), sample_n(nicki, 15)))
+
+artist <-
+    artist_data %>% add_audio_analysis %>%
+    mutate(artist_name = factor(artist_name)) %>%
+    mutate(
+        segments =
+            map2(segments, key, compmus_c_transpose)) %>%
+    mutate(
+        pitches =
+            map(segments,
+                compmus_summarise, pitches,
+                method = 'mean', norm = 'manhattan'),
+        timbre =
+            map(
+                segments,
+                compmus_summarise, timbre,
+                method = 'mean')) %>%
+    mutate(pitches = map(pitches, compmus_normalise, 'clr')) %>%
+    mutate_at(vars(pitches, timbre), map, bind_rows) %>%
+    unnest(pitches, timbre)
+
+artist_class <-
+    recipe(artist_name ~
+               danceability +
+               energy +
+               loudness +
+               speechiness +
+               acousticness +
+               instrumentalness +
+               liveness +
+               valence +
+               tempo +
+               duration_ms +
+               C + `C#|Db` + D + `D#|Eb` +
+               E + `F` + `F#|Gb` + G +
+               `G#|Ab` + A + `A#|Bb` + B +
+               c01 + c02 + c03 + c04 + c05 + c06 +
+               c07 + c08 + c09 + c10 + c11 + c12,
+           data = artist) %>%
+    step_center(all_predictors()) %>%
+    step_scale(all_predictors()) %>%
+    # step_range(all_predictors()) %>%
+    prep(artist) %>%
+    juice
+
+artist_cv <- artist_class %>% vfold_cv(5)
+```
+
+```{r}
+artist_forest <- rand_forest() %>% set_engine('randomForest')
+predict_forest <- function(split)
+    fit(hiphop_forest, artist_name ~ ., data = analysis(split)) %>% 
+    predict(assessment(split), type = 'class') %>%
+    bind_cols(assessment(split))
+
+artist_cv %>% 
+    mutate(pred = map(splits, predict_forest)) %>% unnest(pred) %>% 
+    conf_mat(truth = artist_name, estimate = .pred_class) %>% 
+    autoplot(type = 'heatmap')
+```
+
 Column {data-width=200}
 -------------------------------------
-### Notes
+### Findings
+This section shows two classifation tasks: genre classification and artist classification. In both cases a random forest classifier was used, generating 500 trees. To reduce training time, for each genre 75 songs were sampled and 15 songs were sampled per artist. The confusion matrices were obtained by 5-fold cross-validation.
 
+Though there were not very clear clusters visible in the data separating Dutch and American music, a classifier was build to see it could do a better job. This resulted in an accuracy of `r accuracy`, a precision of `r precision` and a recall of `r recall`. The next graph shows the feature importance for the random forest classifier. Two of the most important features are plotted. These can differ every time we run the algorithm, because the decision trees are random.
+
+For the artists individually I did not see any clusters at all. A random forest classifier does not perform very well either, as we can see in the confusion matrix for artist classification. Boef, Bizzey and Snoop Dogg are best separable from the rest of the artists.
 
 Conclusions
 =====================================
+Column {data-width=700}
+-------------------------------------
+### Conclusions
+
+* Features for American hip hop and Nederhop are alike. In general, American hip hop is a little more spread out.
+* Looking at the energy and valence space, hip hop music appears mostly in the angry and happy quadrants.
+* Hip hop songs contain a lot of repetitions. This could be one of the reasons for their high danceability.
+* Clustering did not deliver any insights about feature importance.
+* Features that were most important for classification were duration_ms, timbre component 9 and timbre component 5.
+* The accuracy for classifying Dutch and American hip hop was `r accuracy`.
+* There weren't a lot of visible feature differences for different artists. This was supported by a poor performance on the classification task for artists.
+
+### Discussion
+* The data set might contain non hip hop outliers, because during data collection, I focussed on artist rather than genre.
+* Separating artists was hard. As I mentioned in the corpus selection, there was a lot of collaboration. It turned out I didn't filter out all collaboration, because sometimes it is mentioned in the song title (with feat ...). Maybe bad performance was caused by a small training set. However, it could also be that artists just are not that different in terms of Spotify features. Removing collaborative data could also have resulted in removing very descriptive songs for distinguishing genre.
+* Future research could focuss on outlier detection or try to run a similar analysis on another corpus.
+
+Column {data-width=300}
+-------------------------------------
+### References
+Blanchard, B. (1999). The social significance of rap & hip-hop culture. Journal of Poverty & Prejudice, Spring.
+
+Koreman, R. (2014). Legitimating Local Music: Volksmuziek, Hip-Hop/Rap and Dance Music in Dutch Elite Newspapers. Cultural Sociology, 8(4), 501-519.
+
+Spotify. 2019. Spotify Web API. https://developer.spotify.com/documentation/web-api/
+
+Emotion studies in HCI-a new approach - Scientific Figure on ResearchGate. Available from: https://www.researchgate.net/figure/Russells-circumplex-model-of-affect_fig1_229021134 [accessed 19 Mar, 2019]
+(Image of Russell's circumplex model)
